@@ -10,6 +10,7 @@ I started off looking for something ready-made. I found and really liked [Ryan W
 ## Dependencies 
 
 - [pyinotify](https://github.com/seb-m/pyinotify)
+- python >= 3.6
 
 ## Install
 
