@@ -21,6 +21,7 @@ git clone https://github.com/epi052/recursive-gobuster.git
 
 ./recursive-gobuster/recursive-gobuster.pyz 
 usage: recursive-gobuster.pyz [-h] [-t THREADS] [-x EXTENSIONS] [-w WORDLIST]
+                              [-d]
                               target
 ```
 
@@ -56,7 +57,6 @@ Since there is a prebuilt package included in the repo, the build script is prim
 ## Considerations
 I wrote this tool for me, to be integrated into my workflow with my preferences in mind.  As such, there are some things to be aware of that you may or may not care for.
 
-- STDERR is mapped to `/dev/null`.  I do this to suppress the wildcard error messages from gobuster, it's a personal preference and I've commented the code where it can be reenabled if that's your thing.
 - There is no limit placed on the number of concurrent scans and no option to do rate limiting. Each one is its own separate process, however this behavior may not be desirable, depending on your target and host machine.
 - The tool is pretty opinionated about options fed to gobuster.  Removing the `-f`, `-e`, or `-n` will likely break functionality of the tool.  The other options are either configurable via command line options, or can be manipulated in the source code without any adverse side-effects
 
@@ -79,33 +79,75 @@ The default wordlist is `seclists/Discovery/Web-Content/common.txt`.  The defaul
 
 ```
 time /opt/recursive_gobuster.pyz http://10.10.10.112
-http://10.10.10.112/.htaccess/
-http://10.10.10.112/.htpasswd/
 http://10.10.10.112/.hta/
+http://10.10.10.112/.htpasswd/
+http://10.10.10.112/.htaccess/
+2019/01/17 05:49:34 [-] Wildcard response found: http://10.10.10.112/.htpasswd/a1612d11-2fda-486f-a039-d5aef1556386 => 403
+2019/01/17 05:49:34 [!] To force processing of Wildcard responses, specify the '-fw' switch.
+2019/01/17 05:49:34 [-] Wildcard response found: http://10.10.10.112/.hta/b2b5e936-7574-41c8-bb60-022c81b0b325 => 403
+2019/01/17 05:49:34 [!] To force processing of Wildcard responses, specify the '-fw' switch.
+2019/01/17 05:49:34 [-] Wildcard response found: http://10.10.10.112/.htaccess/5ae6f6d2-7269-48e4-af73-b6d604f6d3b2 => 403
+2019/01/17 05:49:34 [!] To force processing of Wildcard responses, specify the '-fw' switch.
 http://10.10.10.112/Images/
 http://10.10.10.112/Images/.htaccess/
-http://10.10.10.112/Images/.hta/
 http://10.10.10.112/Images/.htpasswd/
+http://10.10.10.112/Images/.hta/
+2019/01/17 05:49:35 [-] Wildcard response found: http://10.10.10.112/Images/.htpasswd/12ec114e-3818-499e-bcb2-9b4139e6eb71 => 403
+2019/01/17 05:49:35 [!] To force processing of Wildcard responses, specify the '-fw' switch.
+2019/01/17 05:49:35 [-] Wildcard response found: http://10.10.10.112/Images/.htaccess/003ce118-407c-483f-9edd-cb7cad646685 => 403
+2019/01/17 05:49:35 [!] To force processing of Wildcard responses, specify the '-fw' switch.
+2019/01/17 05:49:35 [-] Wildcard response found: http://10.10.10.112/Images/.hta/f0f57fb2-93f5-4c5c-9cc9-84c09090e8ad => 403
+2019/01/17 05:49:35 [!] To force processing of Wildcard responses, specify the '-fw' switch.
 http://10.10.10.112/assets/
-http://10.10.10.112/assets/.htpasswd/
-http://10.10.10.112/assets/.hta/
 http://10.10.10.112/assets/.htaccess/
+http://10.10.10.112/assets/.hta/
+http://10.10.10.112/assets/.htpasswd/
+2019/01/17 05:49:36 [-] Wildcard response found: http://10.10.10.112/assets/.htaccess/6fe86826-d623-4119-a1e4-b54edac070b3 => 403
+2019/01/17 05:49:36 [!] To force processing of Wildcard responses, specify the '-fw' switch.
+2019/01/17 05:49:36 [-] Wildcard response found: http://10.10.10.112/assets/.hta/6259ad75-3d6a-4881-9a19-cad99623b204 => 403
+2019/01/17 05:49:36 [!] To force processing of Wildcard responses, specify the '-fw' switch.
+2019/01/17 05:49:36 [-] Wildcard response found: http://10.10.10.112/assets/.htpasswd/5d2a8a43-9fe7-4f37-8fee-1498ae9048da => 403
+2019/01/17 05:49:36 [!] To force processing of Wildcard responses, specify the '-fw' switch.
 http://10.10.10.112/assets/css/
-http://10.10.10.112/assets/css/.hta/
-http://10.10.10.112/assets/css/.htaccess/
-http://10.10.10.112/assets/css/.htpasswd/
 http://10.10.10.112/images/
-http://10.10.10.112/images/.hta/
+http://10.10.10.112/assets/css/.htpasswd/
+http://10.10.10.112/assets/css/.htaccess/
+http://10.10.10.112/assets/css/.hta/
+2019/01/17 05:49:41 [-] Wildcard response found: http://10.10.10.112/assets/css/.htpasswd/dc99e161-2379-4f98-930d-90248641fe73 => 403
+2019/01/17 05:49:41 [!] To force processing of Wildcard responses, specify the '-fw' switch.
+2019/01/17 05:49:41 [-] Wildcard response found: http://10.10.10.112/assets/css/.htaccess/dd6b320c-a54b-4e29-9821-dd7b78b68c82 => 403
+2019/01/17 05:49:41 [!] To force processing of Wildcard responses, specify the '-fw' switch.
+2019/01/17 05:49:41 [-] Wildcard response found: http://10.10.10.112/assets/css/.hta/917be959-5ac9-4201-b44f-c89dc1c9bcb5 => 403
+2019/01/17 05:49:41 [!] To force processing of Wildcard responses, specify the '-fw' switch.
 http://10.10.10.112/images/.htaccess/
 http://10.10.10.112/images/.htpasswd/
+http://10.10.10.112/images/.hta/
+2019/01/17 05:49:41 [-] Wildcard response found: http://10.10.10.112/images/.hta/dfb25bd1-26c3-4fcd-9e0e-605fa3354505 => 403
+2019/01/17 05:49:41 [!] To force processing of Wildcard responses, specify the '-fw' switch.
+2019/01/17 05:49:41 [-] Wildcard response found: http://10.10.10.112/images/.htpasswd/5ccb242b-0c03-4df1-9132-20fe8cc4b01b => 403
+2019/01/17 05:49:41 [!] To force processing of Wildcard responses, specify the '-fw' switch.
+2019/01/17 05:49:41 [-] Wildcard response found: http://10.10.10.112/images/.htaccess/f64e7160-f6b6-4c89-a76f-1a34b3f879a5 => 403
+2019/01/17 05:49:41 [!] To force processing of Wildcard responses, specify the '-fw' switch.
 http://10.10.10.112/assets/fonts/
-http://10.10.10.112/assets/fonts/.hta/
 http://10.10.10.112/assets/fonts/.htaccess/
+http://10.10.10.112/assets/fonts/.hta/
 http://10.10.10.112/assets/fonts/.htpasswd/
+2019/01/17 05:49:43 [-] Wildcard response found: http://10.10.10.112/assets/fonts/.htaccess/c29f202e-6bc1-47b0-bcaf-b450dbec87fc => 403
+2019/01/17 05:49:43 [!] To force processing of Wildcard responses, specify the '-fw' switch.
+2019/01/17 05:49:43 [-] Wildcard response found: http://10.10.10.112/assets/fonts/.hta/d0df1e60-81bc-4516-bcae-ea03999acbdb => 403
+2019/01/17 05:49:43 [!] To force processing of Wildcard responses, specify the '-fw' switch.
+2019/01/17 05:49:43 [-] Wildcard response found: http://10.10.10.112/assets/fonts/.htpasswd/03f5de0a-396b-4dc7-9d08-7b46202e3641 => 403
+2019/01/17 05:49:43 [!] To force processing of Wildcard responses, specify the '-fw' switch.
 http://10.10.10.112/assets/js/
-http://10.10.10.112/assets/js/.htpasswd/
 http://10.10.10.112/assets/js/.hta/
 http://10.10.10.112/assets/js/.htaccess/
+http://10.10.10.112/assets/js/.htpasswd/
+2019/01/17 05:49:44 [-] Wildcard response found: http://10.10.10.112/assets/js/.htpasswd/5c192b5e-8ef2-4a98-a850-64ff3308f82e => 403
+2019/01/17 05:49:44 [!] To force processing of Wildcard responses, specify the '-fw' switch.
+2019/01/17 05:49:44 [-] Wildcard response found: http://10.10.10.112/assets/js/.hta/bf5b535a-ced5-4d4e-9de4-8f748473615c => 403
+2019/01/17 05:49:44 [!] To force processing of Wildcard responses, specify the '-fw' switch.
+2019/01/17 05:49:44 [-] Wildcard response found: http://10.10.10.112/assets/js/.htaccess/f1483aeb-8572-4186-8221-19bddcf57ef7 => 403
+2019/01/17 05:49:44 [!] To force processing of Wildcard responses, specify the '-fw' switch.
 All scans complete. Cleaning up.
 
 real	0m37.033s
@@ -116,6 +158,45 @@ sys	0m0.112s
 -rw-r--r--  1 root root    962 Jan 11 20:42 recursive_gobuster_http:__10.10.10.112.log
 
 ```
+
+### Scan with STDERR sent to /dev/null
+This option is included to suppress all the **Wildcard response** messages sent to STDERR.
+
+```
+/opt/recursive_gobuster.pyz -d http://10.10.10.112
+http://10.10.10.112/.hta/
+http://10.10.10.112/.htpasswd/
+http://10.10.10.112/.htaccess/
+http://10.10.10.112/Images/
+http://10.10.10.112/Images/.htaccess/
+http://10.10.10.112/Images/.htpasswd/
+http://10.10.10.112/Images/.hta/
+http://10.10.10.112/assets/
+http://10.10.10.112/assets/.htaccess/
+http://10.10.10.112/assets/.htpasswd/
+http://10.10.10.112/assets/.hta/
+http://10.10.10.112/assets/css/
+http://10.10.10.112/images/
+http://10.10.10.112/assets/css/.htaccess/
+http://10.10.10.112/assets/css/.hta/
+http://10.10.10.112/assets/css/.htpasswd/
+http://10.10.10.112/images/.htaccess/
+http://10.10.10.112/images/.htpasswd/
+http://10.10.10.112/images/.hta/
+http://10.10.10.112/assets/fonts/
+http://10.10.10.112/assets/fonts/.hta/
+http://10.10.10.112/assets/fonts/.htaccess/
+http://10.10.10.112/assets/fonts/.htpasswd/
+http://10.10.10.112/assets/js/
+http://10.10.10.112/assets/js/.htaccess/
+http://10.10.10.112/assets/js/.hta/
+http://10.10.10.112/assets/js/.htpasswd/
+All scans complete. Cleaning up.
+
+real	0m37.141s
+user	0m0.182s
+sys	0m0.073s
+``` 
 
 ### Scan with extensions
 ```

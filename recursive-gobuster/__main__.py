@@ -31,6 +31,7 @@ class EventHandler(pyinotify.ProcessEvent):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.tmpdir = kwargs.get('tmpdir')
+        self.devnull = kwargs.get('devnull')
         self.threads = kwargs.get('threads')
         self.wordlist = kwargs.get('wordlist')
         self.extensions = kwargs.get('extensions')
@@ -90,16 +91,9 @@ class EventHandler(pyinotify.ProcessEvent):
             command.append('-x')
             command.append(self.extensions)
 
-        """
-        my personal preference is to suppress all the wildcard error messages as seen below. 
+        suppress = subprocess.DEVNULL if self.devnull else None
 
-        [-] Wildcard response found: http://10.10.10.112/.hta/eb7c8242-0d3b-4e7a-9336-f6d6327b87a3 => 403
-        [!] To force processing of Wildcard responses, specify the '-fw' switch.
-
-        If you want to see these, or think that you're missing something from stderr, remove stderr=subprocess.DEVULL 
-        from the Popen constructor.
-        """
-        subprocess.Popen(command, stderr=subprocess.DEVNULL)
+        subprocess.Popen(command, stderr=suppress)
 
         active_scans.append(normalized_target)
 
@@ -192,7 +186,8 @@ def main(args_ns: argparse.Namespace) -> None:
         tmpdir=tmpdir,
         wordlist=args_ns.wordlist,
         threads=args_ns.threads,
-        extensions=args_ns.extensions
+        extensions=args_ns.extensions,
+        devnull=args.devnull,
     )
 
     notifier = pyinotify.Notifier(wm, handler)
@@ -216,6 +211,7 @@ if __name__ == '__main__':
     parser.add_argument('-x', '--extensions', help='extensions passed to the -x option for spawned gobuster')
     parser.add_argument('-w', '--wordlist', default='/usr/share/seclists/Discovery/Web-Content/common.txt',
                         help='wordlist for each spawned gobuster (default: /usr/share/seclists/Discovery/Web-Content/common.txt)')
+    parser.add_argument('-d', '--devnull', action='store_true', default=False, help='send stderr to devnull')
     parser.add_argument('target', help='target to scan')
 
     args = parser.parse_args()
