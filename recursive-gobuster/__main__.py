@@ -53,25 +53,19 @@ class EventHandler(pyinotify.ProcessEvent):
     def run_gobuster(self, target: str) -> None:
         """ Runs gobuster in a non-blocking subprocess.
 
-        The function is pretty opinionated about options fed to gobuster.  Removing the -f, -e, or -n will likely break
+        The function is pretty opinionated about options fed to gobuster.  Removing the -e, or -n will likely break
         functionality of the script.  The other options are either configurable via command line options, or can be
         manipulated without any adverse side-effects.
 
         Hard-coded options/args
-            -f
-                Append a forward-slash to each directory request
             -q
                 Don't print the banner and other noise
             -n
                 Don't print status codes
-            -r
-                Follow redirects
             -e
                 Expanded mode, print full URLs
             -k
                 Skip SSL certificate verification
-            -a string
-                Set the User-Agent string
 
         Args:
             target: target url i.e. http://10.10.10.112/images/
@@ -80,10 +74,9 @@ class EventHandler(pyinotify.ProcessEvent):
 
         command = [
             'gobuster',
-            '-f', '-q', '-n', '-r', '-e', '-k', '-t', self.threads,  # fqnrekt, lol
+            '-q', '-n', '-e', '-k', '-t', self.threads,
             '-u', target,
             '-w', self.wordlist,
-            '-a', 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
             '-o', f"{self.tmpdir}/{normalized_target}"
         ]
 
@@ -111,17 +104,16 @@ class EventHandler(pyinotify.ProcessEvent):
             for line in f:
                 line = line.strip()
 
-                if not line.endswith('/'):  # skip non-directories
-                    continue
+                # found a path -> https://somedomain/images, add a forward slash to scan in case of dir-ness
+                tgt = f"{line}/"
 
-                # found a directory -> https://somedomain/images/
-                normalized_target = self._normalize_targetname(line)
+                normalized_target = self._normalize_targetname(tgt)
 
                 if normalized_target in active_scans or normalized_target in completed_scans:  # skip active/complete
                     continue
 
                 # found a directory that is not being actively scanned and has not already been scanned
-                self.run_gobuster(target=line)
+                self.run_gobuster(target=tgt)
 
     def process_IN_CLOSE_WRITE(self, event: pyinotify.Event) -> None:
         """ Handles event produced when a file that was open for writing is closed.

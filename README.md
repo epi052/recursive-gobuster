@@ -58,17 +58,14 @@ Since there is a prebuilt package included in the repo, the build script is prim
 I wrote this tool for me, to be integrated into my workflow with my preferences in mind.  As such, there are some things to be aware of that you may or may not care for.
 
 - There is no limit placed on the number of concurrent scans and no option to do rate limiting. Each one is its own separate process, however this behavior may not be desirable, depending on your target and host machine.
-- The tool is pretty opinionated about options fed to gobuster.  Removing the `-f`, `-e`, or `-n` will likely break functionality of the tool.  The other options are either configurable via command line options, or can be manipulated in the source code without any adverse side-effects
+- The tool is pretty opinionated about options fed to gobuster.  Removing the `-e`, or `-n` will likely break functionality of the tool.  The other options are either configurable via command line options, or can be manipulated in the source code without any adverse side-effects
 
 | hard-coded options | meaning |
 |----|--------------------------------------------------|
-| -f | Append a forward-slash to each directory request |
 | -q | Don't print the banner and other noise           |
 | -n | Don't print status codes                         |
-| -r | Follow redirects                                 |
 | -e | Expanded mode, print full URLs                   |
 | -k | Skip SSL certificate verification                |
-| -a | Set the User-Agent string                        |
 
 Knowing all that, it's still just a python script and can easily be manipulated to your own preferences.  I've included `build.sh` so you can make changes and easily generate a new packaged version.  
 
