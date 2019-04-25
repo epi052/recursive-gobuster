@@ -8,6 +8,7 @@ Tested on:
     Python 3.6.6
     pyinotify 0.9.6
 """
+import re
 import time
 import signal
 import shutil
@@ -86,7 +87,11 @@ class EventHandler(pyinotify.ProcessEvent):
 
         suppress = subprocess.DEVNULL if self.devnull else None
 
-        subprocess.Popen(command, stderr=suppress)
+        try:
+            subprocess.Popen(command, stderr=suppress)
+        except FileNotFoundError as e:
+            print(e)
+            raise SystemExit
 
         active_scans.append(normalized_target)
 
@@ -104,16 +109,28 @@ class EventHandler(pyinotify.ProcessEvent):
             for line in f:
                 line = line.strip()
 
-                # found a path -> https://somedomain/images, add a forward slash to scan in case of dir-ness
-                tgt = f"{line}/"
+                """
+                In response to https://github.com/epi052/recursive-gobuster/issues/2
 
-                normalized_target = self._normalize_targetname(tgt)
+                In the scans below, 00.php/ should not kick off another scan.  The loop below aims to address the problem.
 
-                if normalized_target in active_scans or normalized_target in completed_scans:  # skip active/complete
-                    continue
+                gobuster -q -n -e -k -t 20 -u https://bluejeans.com/00/ -w /wordlists/seclists/Discovery/Web-Content/common.txt -o /tmp/rcrsv-gbstryv_fcneq/https:__bluejeans.com_00_ -x php
+                gobuster -q -n -e -k -t 20 -u https://bluejeans.com/00.php/ -w /wordlists/seclists/Discovery/Web-Content/common.txt -o /tmp/rcrsv-gbstryv_fcneq/https:__bluejeans.com_00.php_ -x php
+                """
+                for extension in self.extensions.split(','):
+                    if line.endswith(f".{extension}"):
+                        break
+                else:
+                    # found a path -> https://somedomain/images, add a forward slash to scan in case of dir-ness
+                    tgt = f"{line}/"
 
-                # found a directory that is not being actively scanned and has not already been scanned
-                self.run_gobuster(target=tgt)
+                    normalized_target = self._normalize_targetname(tgt)
+
+                    if normalized_target in active_scans or normalized_target in completed_scans:  # skip active/complete
+                        continue
+
+                    # found a directory that is not being actively scanned and has not already been scanned
+                    self.run_gobuster(target=tgt)
 
     def process_IN_CLOSE_WRITE(self, event: pyinotify.Event) -> None:
         """ Handles event produced when a file that was open for writing is closed.
