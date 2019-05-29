@@ -31,6 +31,7 @@ class EventHandler(pyinotify.ProcessEvent):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.user = kwargs.get('user')
+        self.proxy = kwargs.get('proxy')
         self.tmpdir = kwargs.get('tmpdir')
         self.devnull = kwargs.get('devnull')
         self.threads = kwargs.get('threads')
@@ -94,6 +95,10 @@ class EventHandler(pyinotify.ProcessEvent):
                 # password set to anything (including empty string)
                 command.append('-P')
                 command.append(self.password)
+
+        if self.proxy:
+            command.append("-p")
+            command.append(self.proxy)
 
         suppress = subprocess.DEVNULL if self.devnull else None
 
@@ -208,7 +213,8 @@ def main(args_ns: argparse.Namespace) -> None:
         extensions=args_ns.extensions,
         devnull=args.devnull,
         user=args_ns.user,
-        password=args_ns.password
+        password=args_ns.password,
+        proxy=args_ns.proxy
     )
 
     notifier = pyinotify.Notifier(wm, handler)
@@ -235,6 +241,7 @@ if __name__ == '__main__':
     parser.add_argument('-d', '--devnull', action='store_true', default=False, help='send stderr to devnull')
     parser.add_argument('-U', '--user', help='Username for Basic Auth (dir mode only)')
     parser.add_argument('-P', '--password', help='Password for Basic Auth (dir mode only)')
+    parser.add_argument('-p', '--proxy', help='Proxy to use for requests [http(s)://host:port] (dir mode only)')
     parser.add_argument('target', help='target to scan')
 
     args = parser.parse_args()
