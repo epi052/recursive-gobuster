@@ -8,7 +8,6 @@ Tested on:
     Python 3.6.6
     pyinotify 0.9.6
 """
-import re
 import time
 import signal
 import shutil
@@ -31,9 +30,11 @@ class EventHandler(pyinotify.ProcessEvent):
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.user = kwargs.get('user')
         self.tmpdir = kwargs.get('tmpdir')
         self.devnull = kwargs.get('devnull')
         self.threads = kwargs.get('threads')
+        self.password = kwargs.get('password')
         self.wordlist = kwargs.get('wordlist')
         self.extensions = kwargs.get('extensions')
         self.target = self.original_target = kwargs.get('target')
@@ -84,6 +85,15 @@ class EventHandler(pyinotify.ProcessEvent):
         if self.extensions:
             command.append('-x')
             command.append(self.extensions)
+
+        if self.user:
+            # gobuster silently ignores the case where -P is set but -U is not; we'll follow suit.
+            command.append('-U')
+            command.append(self.user)
+            if self.password is not None:
+                # password set to anything (including empty string)
+                command.append('-P')
+                command.append(self.password)
 
         suppress = subprocess.DEVNULL if self.devnull else None
 
@@ -197,6 +207,8 @@ def main(args_ns: argparse.Namespace) -> None:
         threads=args_ns.threads,
         extensions=args_ns.extensions,
         devnull=args.devnull,
+        user=args_ns.user,
+        password=args_ns.password
     )
 
     notifier = pyinotify.Notifier(wm, handler)
@@ -221,6 +233,8 @@ if __name__ == '__main__':
     parser.add_argument('-w', '--wordlist', default='/usr/share/seclists/Discovery/Web-Content/common.txt',
                         help='wordlist for each spawned gobuster (default: /usr/share/seclists/Discovery/Web-Content/common.txt)')
     parser.add_argument('-d', '--devnull', action='store_true', default=False, help='send stderr to devnull')
+    parser.add_argument('-U', '--user', help='Username for Basic Auth (dir mode only)')
+    parser.add_argument('-P', '--password', help='Password for Basic Auth (dir mode only)')
     parser.add_argument('target', help='target to scan')
 
     args = parser.parse_args()
