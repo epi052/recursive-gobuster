@@ -28,17 +28,19 @@ class EventHandler(pyinotify.ProcessEvent):
     Handles notifications and takes actions through specific processing methods.
     For an EVENT_TYPE, a process_EVENT_TYPE function will execute.
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.user = kwargs.get('user')
-        self.proxy = kwargs.get('proxy')
-        self.tmpdir = kwargs.get('tmpdir')
-        self.devnull = kwargs.get('devnull')
-        self.threads = kwargs.get('threads')
-        self.password = kwargs.get('password')
-        self.wordlist = kwargs.get('wordlist')
-        self.extensions = kwargs.get('extensions')
-        self.target = self.original_target = kwargs.get('target')
+        self.user = kwargs.get("user")
+        self.proxy = kwargs.get("proxy")
+        self.tmpdir = kwargs.get("tmpdir")
+        self.devnull = kwargs.get("devnull")
+        self.threads = kwargs.get("threads")
+        self.version = kwargs.get("version")
+        self.password = kwargs.get("password")
+        self.wordlist = kwargs.get("wordlist")
+        self.extensions = kwargs.get("extensions")
+        self.target = self.original_target = kwargs.get("target")
 
     def _normalize_targetname(self, tgt: str) -> str:
         """ Returns a string representing a target URL that is compatible with linux filesystem naming conventions.
@@ -51,7 +53,7 @@ class EventHandler(pyinotify.ProcessEvent):
         Returns:
             normalized target url i.e. http:__10.10.10.112_images_
         """
-        return tgt.replace('/', '_')
+        return tgt.replace("/", "_")
 
     def run_gobuster(self, target: str) -> None:
         """ Runs gobuster in a non-blocking subprocess.
@@ -75,25 +77,39 @@ class EventHandler(pyinotify.ProcessEvent):
         """
         normalized_target = self._normalize_targetname(target)
 
-        command = [
-            'gobuster',
-            '-q', '-n', '-e', '-k', '-t', self.threads,
-            '-u', target,
-            '-w', self.wordlist,
-            '-o', f"{self.tmpdir}/{normalized_target}"
-        ]
+        command = ["gobuster"]
+
+        if self.version == 3:
+            command.append("dir")
+
+        command.extend(
+            [
+                "-q",
+                "-n",
+                "-e",
+                "-k",
+                "-t",
+                self.threads,
+                "-u",
+                target,
+                "-w",
+                self.wordlist,
+                "-o",
+                f"{self.tmpdir}/{normalized_target}",
+            ]
+        )
 
         if self.extensions:
-            command.append('-x')
+            command.append("-x")
             command.append(self.extensions)
 
         if self.user:
             # gobuster silently ignores the case where -P is set but -U is not; we'll follow suit.
-            command.append('-U')
+            command.append("-U")
             command.append(self.user)
             if self.password is not None:
                 # password set to anything (including empty string)
-                command.append('-P')
+                command.append("-P")
                 command.append(self.password)
 
         if self.proxy:
@@ -101,7 +117,7 @@ class EventHandler(pyinotify.ProcessEvent):
             command.append(self.proxy)
 
         suppress = subprocess.DEVNULL if self.devnull else None
-
+        print(" ".join(command))
         try:
             subprocess.Popen(command, stderr=suppress)
         except FileNotFoundError as e:
@@ -132,7 +148,7 @@ class EventHandler(pyinotify.ProcessEvent):
                 gobuster -q -n -e -k -t 20 -u https://bluejeans.com/00/ -w /wordlists/seclists/Discovery/Web-Content/common.txt -o /tmp/rcrsv-gbstryv_fcneq/https:__bluejeans.com_00_ -x php
                 gobuster -q -n -e -k -t 20 -u https://bluejeans.com/00.php/ -w /wordlists/seclists/Discovery/Web-Content/common.txt -o /tmp/rcrsv-gbstryv_fcneq/https:__bluejeans.com_00.php_ -x php
                 """
-                for extension in self.extensions.split(','):
+                for extension in self.extensions.split(","):
                     if line.endswith(f".{extension}"):
                         break
                 else:
@@ -141,7 +157,9 @@ class EventHandler(pyinotify.ProcessEvent):
 
                     normalized_target = self._normalize_targetname(tgt)
 
-                    if normalized_target in active_scans or normalized_target in completed_scans:  # skip active/complete
+                    if (
+                        normalized_target in active_scans or normalized_target in completed_scans
+                    ):  # skip active/complete
                         continue
 
                     # found a directory that is not being actively scanned and has not already been scanned
@@ -191,19 +209,39 @@ class EventHandler(pyinotify.ProcessEvent):
 
             results.sort()
 
-            with open(f"recursive-gobuster_{self._normalize_targetname(self.original_target)}.log", 'w') as f:
-                f.write(''.join(results))
+            with open(
+                f"recursive-gobuster_{self._normalize_targetname(self.original_target)}.log", "w"
+            ) as f:
+                f.write("".join(results))
 
             shutil.rmtree(self.tmpdir)
 
         raise SystemExit(0)
 
 
+def get_gobuster_version() -> int:
+    """ Return an int representing gobuster's version.
+
+    There is no --version or similar for gobuster, so this function checks output of running gobuster without
+    any options/arguments.  Depending on the usage statement, we determine whether or not gobuster is version
+    3+ or not.
+
+    Returns:
+        int representing gobuster version; internal representation only.  Not in sync with gobuster releases
+    """
+    proc = subprocess.run(["gobuster"], stderr=subprocess.PIPE)
+
+    # version 3+ with dns dir etc...
+    return 3 if b"Usage:" in proc.stderr.splitlines()[0] else 2
+
+
 def main(args_ns: argparse.Namespace) -> None:
-    tmpdir = tempfile.mkdtemp(prefix='rcrsv-gbstr')  # directory for gobuster scan results
+    tmpdir = tempfile.mkdtemp(prefix="rcrsv-gbstr")  # directory for gobuster scan results
 
     # watch manager stores the watches and provides operations on watches
     wm = pyinotify.WatchManager()
+
+    version = get_gobuster_version()
 
     handler = EventHandler(
         target=args_ns.target,
@@ -214,7 +252,8 @@ def main(args_ns: argparse.Namespace) -> None:
         devnull=args.devnull,
         user=args_ns.user,
         password=args_ns.password,
-        proxy=args_ns.proxy
+        proxy=args_ns.proxy,
+        version=version,
     )
 
     notifier = pyinotify.Notifier(wm, handler)
@@ -231,21 +270,31 @@ def main(args_ns: argparse.Namespace) -> None:
     notifier.loop()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('-t', '--threads', default='20', help='# of threads for each spawned gobuster (default: 20)')
-    parser.add_argument('-x', '--extensions', help='extensions passed to the -x option for spawned gobuster')
-    parser.add_argument('-w', '--wordlist', default='/usr/share/seclists/Discovery/Web-Content/common.txt',
-                        help='wordlist for each spawned gobuster (default: /usr/share/seclists/Discovery/Web-Content/common.txt)')
-    parser.add_argument('-d', '--devnull', action='store_true', default=False, help='send stderr to devnull')
-    parser.add_argument('-U', '--user', help='Username for Basic Auth (dir mode only)')
-    parser.add_argument('-P', '--password', help='Password for Basic Auth (dir mode only)')
-    parser.add_argument('-p', '--proxy', help='Proxy to use for requests [http(s)://host:port] (dir mode only)')
-    parser.add_argument('target', help='target to scan')
+    parser.add_argument(
+        "-t", "--threads", default="20", help="# of threads for each spawned gobuster (default: 20)"
+    )
+    parser.add_argument(
+        "-x", "--extensions", help="extensions passed to the -x option for spawned gobuster"
+    )
+    parser.add_argument(
+        "-w",
+        "--wordlist",
+        default="/usr/share/seclists/Discovery/Web-Content/common.txt",
+        help="wordlist for each spawned gobuster (default: /usr/share/seclists/Discovery/Web-Content/common.txt)",
+    )
+    parser.add_argument(
+        "-d", "--devnull", action="store_true", default=False, help="send stderr to devnull"
+    )
+    parser.add_argument("-U", "--user", help="Username for Basic Auth (dir mode only)")
+    parser.add_argument("-P", "--password", help="Password for Basic Auth (dir mode only)")
+    parser.add_argument(
+        "-p", "--proxy", help="Proxy to use for requests [http(s)://host:port] (dir mode only)"
+    )
+    parser.add_argument("target", help="target to scan")
 
     args = parser.parse_args()
 
     main(args)
-
-
