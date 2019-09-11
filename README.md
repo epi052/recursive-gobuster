@@ -1,3 +1,5 @@
+![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)
+
 # recursive-gobuster
 A wrapper around [gobuster](https://github.com/OJ/gobuster) that automatically scans newly discovered directories.
 
