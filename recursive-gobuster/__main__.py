@@ -229,10 +229,10 @@ def get_gobuster_version() -> int:
     Returns:
         int representing gobuster version; internal representation only.  Not in sync with gobuster releases
     """
-    proc = subprocess.run(["gobuster"], stderr=subprocess.PIPE)
+    proc = subprocess.run(["gobuster"], stdout=subprocess.PIPE)
 
     # version 3+ with dns dir etc...
-    return 3 if b"Usage:" in proc.stderr.splitlines()[0] else 2
+    return 3 if b"Usage:" in proc.stdout.splitlines()[0] else 2
 
 
 def main(args_ns: argparse.Namespace) -> None:
@@ -277,7 +277,7 @@ if __name__ == "__main__":
         "-t", "--threads", default="20", help="# of threads for each spawned gobuster (default: 20)"
     )
     parser.add_argument(
-        "-x", "--extensions", help="extensions passed to the -x option for spawned gobuster"
+        "-x", "--extensions", help="extensions passed to the -x option for spawned gobuster", default="",
     )
     parser.add_argument(
         "-w",
