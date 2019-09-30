@@ -117,7 +117,7 @@ class EventHandler(pyinotify.ProcessEvent):
             command.append(self.proxy)
 
         suppress = subprocess.DEVNULL if self.devnull else None
-        print(" ".join(command))
+
         try:
             subprocess.Popen(command, stderr=suppress)
         except FileNotFoundError as e:
