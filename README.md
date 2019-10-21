@@ -23,7 +23,7 @@ git clone https://github.com/epi052/recursive-gobuster.git
 
 ./recursive-gobuster/recursive-gobuster.pyz 
 usage: recursive-gobuster.pyz [-h] [-t THREADS] [-x EXTENSIONS] [-w WORDLIST]
-                              [-d]
+                              [-d] [-U USER] [-P PASSWORD] [-p PROXY]
                               target
 ```
 
