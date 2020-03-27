@@ -33,6 +33,7 @@ class EventHandler(pyinotify.ProcessEvent):
         super().__init__(*args, **kwargs)
         self.user = kwargs.get("user")
         self.proxy = kwargs.get("proxy")
+        self.status = kwargs.get("status")
         self.tmpdir = kwargs.get("tmpdir")
         self.devnull = kwargs.get("devnull")
         self.threads = kwargs.get("threads")
@@ -65,8 +66,6 @@ class EventHandler(pyinotify.ProcessEvent):
         Hard-coded options/args
             -q
                 Don't print the banner and other noise
-            -n
-                Don't print status codes
             -e
                 Expanded mode, print full URLs
             -k
@@ -82,12 +81,15 @@ class EventHandler(pyinotify.ProcessEvent):
         if self.version == 3:
             command.append("dir")
 
+        if not self.status:
+            # don't show status codes
+            command.append("-n")
+
         command.extend(
             [
-                "-q",
-                "-n",
-                "-e",
-                "-k",
+                "-q",  # don't print banner
+                "-e",  # print full URLs
+                "-k",  # skip SSL cert verification
                 "-t",
                 self.threads,
                 "-u",
@@ -139,6 +141,10 @@ class EventHandler(pyinotify.ProcessEvent):
         with open(event.pathname) as f:
             for line in f:
                 line = line.strip()
+                if self.status:
+                    # status codes are included, need to grab just the url for processing
+                    # https://assetinventory.bugcrowd.com/favicon.ico (Status: 200)
+                    line = line.split(maxsplit=1)[0]
 
                 """
                 In response to https://github.com/epi052/recursive-gobuster/issues/2
@@ -254,6 +260,7 @@ def main(args_ns: argparse.Namespace) -> None:
         password=args_ns.password,
         proxy=args_ns.proxy,
         version=version,
+        status=args_ns.status,
     )
 
     notifier = pyinotify.Notifier(wm, handler)
@@ -277,7 +284,10 @@ if __name__ == "__main__":
         "-t", "--threads", default="20", help="# of threads for each spawned gobuster (default: 20)"
     )
     parser.add_argument(
-        "-x", "--extensions", help="extensions passed to the -x option for spawned gobuster", default="",
+        "-x",
+        "--extensions",
+        help="extensions passed to the -x option for spawned gobuster",
+        default="",
     )
     parser.add_argument(
         "-w",
@@ -292,6 +302,13 @@ if __name__ == "__main__":
     parser.add_argument("-P", "--password", help="Password for Basic Auth (dir mode only)")
     parser.add_argument(
         "-p", "--proxy", help="Proxy to use for requests [http(s)://host:port] (dir mode only)"
+    )
+    parser.add_argument(
+        "-s",
+        "--status",
+        help="Include status code reporting (default: false)",
+        action="store_true",
+        default=False,
     )
     parser.add_argument("target", help="target to scan")
 
