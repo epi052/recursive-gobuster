@@ -23,7 +23,7 @@ git clone https://github.com/epi052/recursive-gobuster.git
 
 ./recursive-gobuster/recursive-gobuster.pyz 
 usage: recursive-gobuster.pyz [-h] [-t THREADS] [-x EXTENSIONS] [-w WORDLIST]
-                              [-d] [-U USER] [-P PASSWORD] [-p PROXY]
+                              [-d] [-U USER] [-P PASSWORD] [-p PROXY] [-s]
                               target
 ```
 
@@ -65,13 +65,40 @@ I wrote this tool for me, to be integrated into my workflow with my preferences 
 | hard-coded options | meaning |
 |----|--------------------------------------------------|
 | -q | Don't print the banner and other noise           |
-| -n | Don't print status codes                         |
 | -e | Expanded mode, print full URLs                   |
 | -k | Skip SSL certificate verification                |
 
 Knowing all that, it's still just a python script and can easily be manipulated to your own preferences.  I've included `build.sh` so you can make changes and easily generate a new packaged version.  
 
-## Examples 
+## Examples
+
+```
+usage: recursive-gobuster.pyz [-h] [-t THREADS] [-x EXTENSIONS] [-w WORDLIST]
+                              [-d] [-U USER] [-P PASSWORD] [-p PROXY] [-s]
+                              target
+
+positional arguments:
+  target                target to scan
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -t THREADS, --threads THREADS
+                        # of threads for each spawned gobuster (default: 20)
+  -x EXTENSIONS, --extensions EXTENSIONS
+                        extensions passed to the -x option for spawned
+                        gobuster
+  -w WORDLIST, --wordlist WORDLIST
+                        wordlist for each spawned gobuster (default:
+                        /usr/share/seclists/Discovery/Web-Content/common.txt)
+  -d, --devnull         send stderr to devnull
+  -U USER, --user USER  Username for Basic Auth (dir mode only)
+  -P PASSWORD, --password PASSWORD
+                        Password for Basic Auth (dir mode only)
+  -p PROXY, --proxy PROXY
+                        Proxy to use for requests [http(s)://host:port] (dir
+                        mode only)
+  -s, --status          Include status code reporting (default: false)
+```
 
 ### Standard run with defaults 
 The default wordlist is `seclists/Discovery/Web-Content/common.txt`.  The default number of threads is `20`.  There are no extensions by default.
