@@ -3,6 +3,12 @@
 # recursive-gobuster
 A wrapper around [gobuster](https://github.com/OJ/gobuster) that automatically scans newly discovered directories.
 
+# DEPRECATED
+
+This tool has been deprecated in favor of my new project [feroxbuster](https://github.com/epi052/feroxbuster). Feroxbuster
+is recursive, written in rust, and fast.  It does all the things that `recursive-gobuster` does in addition to quite a
+bit more.  If you came here looking for a recursive content discovery tool, please check out [feroxbuster](https://github.com/epi052/feroxbuster).  
+
 ## Why though?
 
 @OJ designed gobuster to not be recursive.  In fact, it's [#3](https://github.com/OJ/gobuster#oh-dear-god-why) in the list of reasons describing why he wrote gobuster in the first place.  He's a much smarter man than I and I'm sure his reasoning for not including the capability is sound, but I wanted the ability to kick off a scan with my favorite scanner and walk away.  
