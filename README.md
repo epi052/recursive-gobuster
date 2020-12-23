@@ -1,10 +1,16 @@
 ![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)
 
 # DEPRECATED
+# DEPRECATED
+# DEPRECATED
 
 This tool has been deprecated in favor of my new project [feroxbuster](https://github.com/epi052/feroxbuster). Feroxbuster
 is recursive, written in rust, and fast.  It does all the things that `recursive-gobuster` does in addition to quite a
 bit more.  If you came here looking for a recursive content discovery tool, please check out [feroxbuster](https://github.com/epi052/feroxbuster).  
+
+# DEPRECATED
+# DEPRECATED
+# DEPRECATED
 
 # recursive-gobuster
 A wrapper around [gobuster](https://github.com/OJ/gobuster) that automatically scans newly discovered directories.
